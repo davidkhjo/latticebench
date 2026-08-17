@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Benchmark artifacts
+data/
+results/
+runs/
+
+# Paper build
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.pdf
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Nia tooling config (local only)
+nia.json

@@ -1,0 +1,74 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "latticebench"
+dynamic = ["version"]
+description = "A contamination-free logic-grid benchmark for energy-based models, language models, and constraint solvers"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "David" }]
+keywords = [
+    "benchmark",
+    "logic-grid",
+    "zebra-puzzle",
+    "constraint-satisfaction",
+    "energy-based-models",
+    "contamination-free",
+    "reasoning",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = ["cpmpy>=0.9.20", "z3-solver>=4.12", "numpy>=1.24"]
+
+[project.optional-dependencies]
+llm = ["anthropic>=0.40", "openai>=1.0"]
+ebm = ["ebmkit>=0.14", "torch>=2.0"]
+viz = ["matplotlib>=3.7"]
+dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.4", "mypy>=1.8", "hatch>=1.9"]
+
+[project.scripts]
+latticebench = "latticebench.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/davidkhjo/latticebench"
+Repository = "https://github.com/davidkhjo/latticebench"
+Issues = "https://github.com/davidkhjo/latticebench/issues"
+Changelog = "https://github.com/davidkhjo/latticebench/blob/main/CHANGELOG.md"
+
+[tool.hatch.version]
+path = "src/latticebench/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/latticebench"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+files = ["src/latticebench"]
+ignore_missing_imports = true       # cpmpy / z3 / torch ship partial or no stubs
+
+[tool.coverage.run]
+source = ["latticebench"]
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
