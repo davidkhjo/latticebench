@@ -1,0 +1,339 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage[numbers]{natbib}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue}
+
+\title{LatticeBench: A Contamination-Free Logic-Grid Benchmark for
+Comparing Energy-Based Models, Language Models, and Constraint Solvers}
+
+\author{David, Polished Snow}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Static reasoning benchmarks decay as their instances leak into training data, and
+the strongest formal-math suites are now largely solved. We introduce
+LatticeBench, a procedurally-generated benchmark of logic-grid puzzles that is
+distributed as a seed manifest rather than a fixed set of instances, so any
+evaluator regenerates the exact puzzles bit-for-bit and no instance can be quietly
+swapped or memorized without detection. Each puzzle has a unique solution verified
+by a constraint solver and reduced to a minimal clue set, and each compiles to
+three aligned representations: natural-language clues, a constraint program, and
+an energy function over binary assignment variables whose only zero-energy
+configuration is the solution. A single harness scores three model classes on the
+identical instances: energy-based models, language models, and classical CP/SMT
+solvers. This lets us report a graded energy metric that credits near-solutions,
+place solvers as real baselines rather than difficulty oracles, and measure how
+each class scales with grid size. All experimental numbers in this draft are
+placeholders pending the full run.
+\end{abstract}
+
+\section{Introduction}
+
+Benchmarks for machine reasoning wear out. A suite that separates models sharply
+at release loses its power as its problems and solutions circulate, and the field
+has watched formal-math benchmarks slide from single-digit pass rates toward
+saturation within a few years \citep{minif2f}. The usual response is to build a
+larger fixed set by hand, but hand-built sets inherit the same flaw on a slower
+clock: they are finite, they cannot be regenerated, and they leak.
+
+We take a different route. Instead of shipping puzzles, LatticeBench ships the
+machine that makes them. A published manifest names a master seed, a generator
+version, and a git commit, and from those three facts anyone reconstructs the same
+batch of logic-grid puzzles bit-for-bit. Because the grader re-derives instances
+from the manifest and re-grades server-side, a leaked or edited instance buys
+nothing, and a fresh manifest is always one seed away.
+
+Logic-grid puzzles are a good substrate for this because they are constraint
+satisfaction problems with a single correct answer, they admit a difficulty dial
+in the grid size, and they translate cleanly across representations. The same
+puzzle can be read as clues by a language model, as a constraint program by a
+solver, and as an energy function by an energy-based model. That alignment is what
+lets us compare three model classes that are almost never measured on common
+ground.
+
+Our contributions are the following.
+
+\begin{itemize}
+  \item \textbf{Procedural, on-demand generation.} Instances are minted from a
+  seed with grid size and clue budget as parameters, so difficulty is a
+  continuous dial rather than a fixed distribution.
+  \item \textbf{A rigorous contamination-free protocol.} We distribute a seed
+  manifest, not solved puzzles, and enforce it with the steps below.
+  \item \textbf{An energy formulation.} Every puzzle compiles to an energy
+  function whose unique zero-energy configuration is the solution, making
+  energy-based models a first-class evaluated class and yielding a graded
+  final-energy metric with partial credit.
+  \item \textbf{Solvers as real baselines.} Classical CP/SMT solvers are reported
+  as a model class alongside language and energy models, not hidden as difficulty
+  oracles.
+\end{itemize}
+
+The contamination protocol is enforced through four steps.
+
+\begin{enumerate}
+  \item Publish a manifest of master seed, generator version, and git commit.
+  \item Regenerate instances deterministically and bit-for-bit from the manifest.
+  \item Hash each instance back to its seed so substitution or editing is
+  detectable.
+  \item Date each manifest so held-out splits can be forward-dated past a model's
+  training cutoff.
+\end{enumerate}
+
+\section{Related Work}
+
+PutnamBench is the design we most closely emulate: it pairs multiple formal
+representations with grading that factors the final answer from its justification,
+reports heterogeneous baselines, and remains dramatically unsaturated behind a
+public leaderboard \citep{putnambench}. Its limitation is that its problems are
+hand-formalized and fixed, so the set cannot be regenerated and leaks over time.
+MiniF2F illustrates where that leads, having moved from a hard release target
+toward roughly 80 percent solved on its stronger splits \citep{minif2f}. The
+closest procedural competitor is ZebraLogic, which grades logic-grid CSPs by
+difficulty and documents an accuracy collapse as grids grow \citep{zebralogic};
+it nonetheless ships a fixed generated pool, uses Z3 only as a difficulty oracle,
+and evaluates neither solvers as baselines nor energy-based models. GridPuzzle is
+a fixed set scraped from Puzzle Baron with no contamination control
+\citep{gridpuzzle}, PuzzleBench pairs models with solvers as an execution backend
+on a fixed set \citep{puzzlebench}, and the BIG-Bench logic-grid task is a small
+static probe. Procedural natural-language reasoning suites such as ProofWriter
+\citep{proofwriter} and PrOntoQA \citep{prontoqa} establish generation as accepted
+methodology but target entailment rather than unique-assignment CSPs, while
+PuzzleClone \citep{puzzleclone} and CombiBench \citep{combibench} extend puzzle and
+combinatorics coverage without occupying the energy-and-solver corner. On the
+energy side we build on the CSP-as-energy-landscape framing \citep{cspenergy},
+self-supervised CSP solvers \citep{ssvcsp}, and Energy-Based Transformers
+\citep{ebt}; Logical Intelligence's Kona EBRM and Aleph work is a non-peer-reviewed
+blog source \citep{kona} and Enso is an open implementation \citep{enso}. Prior
+work by the author on the Tars system reached 622/672 on PutnamBench, but that
+figure comes from an LLM-orchestration pipeline (recursive decomposition, parallel
+Lean, premise selection) in which an energy-based model acts only as a supporting
+ranker; it is not a pure energy-based prover result and no LatticeBench number
+derives from it.
+
+Table~\ref{tab:diff} summarizes the positioning. LatticeBench is the only entry
+that is procedural, contamination-free, evaluates EBMs as a class, reports solvers
+as baselines, and provides a graded energy metric.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{lccccc}
+\toprule
+Benchmark & Procedural & Contam.-free & EBMs as class & Solvers baseline & Graded energy \\
+\midrule
+PutnamBench  & no  & no  & no  & no  & no  \\
+MiniF2F      & no  & no  & no  & no  & no  \\
+ZebraLogic   & yes & no  & no  & no  & no  \\
+GridPuzzle   & no  & no  & no  & no  & no  \\
+LatticeBench & yes & yes & yes & yes & yes \\
+\bottomrule
+\end{tabular}
+\caption{Where LatticeBench sits relative to the closest benchmarks. Only
+LatticeBench is ``yes'' in every column.}
+\label{tab:diff}
+\end{table}
+
+\section{Benchmark Construction}
+
+A LatticeBench instance places $n$ houses in a row and assigns $m$ attributes,
+where each attribute has $n$ distinct values and each value occupies exactly one
+house. The generator samples a ground-truth assignment, enumerates the clues from
+a fixed vocabulary that are true of it, and adds clues one at a time until a
+constraint solver confirms the solution is unique. It then greedily removes clues,
+keeping a removal whenever the solver confirms uniqueness survives, so the final
+clue set is minimal in the sense that no single clue can be dropped.
+
+The clue vocabulary covers the standard logic-grid repertoire: equality,
+negation, immediate and non-immediate positional relations, adjacency, ends of the
+row, and ordinal position. Every clue type exposes both a solver constraint and an
+energy penalty, which is what keeps the three representations aligned. The oracle
+is CPMpy over OR-Tools CP-SAT with a Z3 fallback, and uniqueness is checked by
+forbidding a found solution and re-solving.
+
+Because all randomness flows through one seeded RNG and serialization is
+canonical, the finished instance is a deterministic function of the seed and the
+generator version. This determinism is what the contamination protocol depends on,
+and it is verified in continuous integration by regenerating a reference batch and
+comparing hashes across platforms.
+
+\section{Contamination-Free Protocol}
+
+We distribute a manifest, not puzzles. The manifest records a master seed, a
+generator version, and the git commit that produced the release, together with the
+batch configuration and a creation date. From those fields any evaluator
+reconstructs the batch bit-for-bit, and the grader does the same server-side, so
+it never trusts a submitted instance.
+
+Each instance is defined as the generator's output on $(\text{master seed}, i,
+\text{generator version})$ and carries a hash of its canonical form. A submitter
+who swaps in an easier instance or edits a hard one changes the hash, and grading
+recomputes the instances from the manifest regardless of what the submission
+claims. Substitution and answer injection therefore fail by construction.
+
+Creation dates handle the harder problem of memorization. A held-out split is a
+manifest published on a known date; a model whose training cutoff precedes that
+date cannot have seen instances that only exist by running the pinned generator on
+the seed. We are explicit about the residual risk in Section~\ref{sec:limits}:
+genre familiarity with zebra puzzles is real, legitimate, and distinct from
+instance contamination, and we bound it by comparing a fresh forward-dated
+manifest against an older public one of the same configuration.
+
+\section{Energy Formulation}
+
+We represent an assignment as binary variables $x_{a,v,h} \in \{0,1\}$, where
+$x_{a,v,h}=1$ means attribute $a$ takes value $v$ in house $h$. The energy is
+
+\begin{equation}
+E(x) = \lambda \, S(x) + \sum_{c \in \mathcal{C}} P_c(x),
+\end{equation}
+
+where $S(x)$ is the structural term enforcing that each attribute takes exactly
+one value per house and each value appears in exactly one house (one-hot and
+all-different constraints), $\lambda > 0$ weights it, and each $P_c \geq 0$ is a
+penalty for clue $c$ that is zero exactly when the clue is satisfied. Every term is
+at most quadratic in $x$, so $E$ is a Potts/QUBO energy. Because the puzzle has a
+unique solution and each penalty is nonnegative and vanishes only on satisfaction,
+$E(x) = 0$ if and only if $x$ is that unique solution, and $E(x) > 0$ everywhere
+else. An energy-based model is scored by minimizing $E$ and reading off the
+argmin; the final value of $E$ gives a graded metric that credits configurations
+close to the solution rather than only exact matches.
+
+\section{Evaluation Setup}
+
+The harness dispatches each instance to one of three adapters behind a common
+interface. The solver adapter runs the oracle as a competitor and records its
+conflict count and solve time. The language-model adapter renders clues to a
+prompt and parses the returned grid. The energy-model adapter minimizes $E$ and
+reads off the argmin configuration. Grading is factored in the PutnamBench style:
+the final answer grid is scored separately from the justification, so a model that
+reaches the right grid by faulty reasoning is not credited the same as one that
+justifies it.
+
+We report four metrics. Exact-match is the fraction of instances whose full grid
+is correct. Cell-accuracy is the fraction of individual attribute-value-house
+cells placed correctly, giving a smoother signal. Final-energy is the mean value
+of $E$ at the model's chosen configuration, which is zero for a solved instance
+and positive otherwise. Solve-time is wall-clock latency, reported chiefly for the
+solver and energy classes where it is meaningful.
+
+\section{Experiments}
+
+This section describes the tables and plots the full run will produce; the numbers
+in Table~\ref{tab:results} are placeholders. The headline plot is accuracy against
+grid size for each model class, which we expect to show language-model accuracy
+falling as grids grow while solvers stay near 100 percent, reproducing the
+complexity curve ZebraLogic reported and setting it against a solver ceiling on the
+same instances. A second analysis correlates the solver's conflict count with
+language-model accuracy per instance, testing whether search difficulty for a
+solver predicts difficulty for a language model. A third examines energy-versus-
+correctness calibration, asking whether an energy-based model's final energy tracks
+whether its answer is right.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{llcccc}
+\toprule
+Model & Class & Exact-match & Cell-acc & Mean energy & Median time (s) \\
+\midrule
+CP-SAT (OR-Tools) & Solver & TODO & TODO & TODO & TODO \\
+Z3               & Solver & TODO & TODO & TODO & TODO \\
+LLM baseline     & LLM    & TODO & TODO & TODO & TODO \\
+EBM baseline     & EBM    & TODO & TODO & TODO & TODO \\
+\bottomrule
+\end{tabular}
+\caption{Placeholder results. All numbers are TODO pending the full evaluation
+run; the row structure fixes the reported model classes and metrics.}
+\label{tab:results}
+\end{table}
+
+\section{Analysis}
+
+The analysis will interpret the three studies above rather than restate them. We
+are most interested in whether the difficulty orderings agree across classes: if
+solver conflict count, language-model error, and energy-model residual energy rank
+instances similarly, that argues logic-grid difficulty is a property of the
+instance rather than of a particular solving method, which would make the grid-size
+dial a clean difficulty control. Where the orderings disagree we expect the
+disagreements to be informative about each method's failure mode.
+
+\section{Limitations}
+\label{sec:limits}
+
+We state three limits plainly. First, energy-based models may underperform
+language models on this benchmark; that is an informative result about the current
+state of EBM reasoning, not a flaw in the benchmark, and reporting it honestly is
+part of the point. Second, the benchmark is English-only, so it measures reasoning
+entangled with English clue comprehension and does not speak to multilingual
+performance. Third, models are broadly familiar with the zebra-puzzle genre, and
+that familiarity raises scores legitimately; the protocol guarantees a specific
+instance was unseen when a manifest postdates a model's cutoff, but it cannot make
+a model naive about the genre, and we quantify the residual gap rather than deny
+it.
+
+\section{Conclusion}
+
+LatticeBench replaces a fixed pool of reasoning problems with a generator, a seed
+manifest, and a grader that re-derives everything server-side, which keeps the
+benchmark useful after it is public and makes results hard to game. By compiling
+each puzzle to aligned clue, constraint, and energy representations, it measures
+energy-based models, language models, and constraint solvers on identical
+instances and reports a graded energy metric alongside exact-match accuracy. The
+experimental numbers here are placeholders; the contribution of this draft is the
+construction, the protocol, and the evaluation design.
+
+\begin{thebibliography}{99}
+
+\bibitem{putnambench} G.~Tsoukalas et al. PutnamBench: Evaluating Neural
+Theorem-Provers on the Putnam Mathematical Competition. arXiv:2407.11214, NeurIPS
+Datasets and Benchmarks, 2024.
+
+\bibitem{minif2f} K.~Zheng, J.~M.~Han, and S.~Polu. MiniF2F: A Cross-System
+Benchmark for Formal Olympiad-Level Mathematics. arXiv:2109.00110, 2021.
+
+\bibitem{zebralogic} B.~Y.~Lin et al. ZebraLogic: On the Scaling Limits of LLMs
+for Logical Reasoning. arXiv:2502.01100, ICML, 2025.
+
+\bibitem{gridpuzzle} Authors of GridPuzzle. GridPuzzle: A Benchmark for Evaluating
+Reasoning Chains on Logic Grid Puzzles. arXiv:2407.14790, EMNLP, 2024.
+
+\bibitem{puzzlebench} Authors of PuzzleBench. PuzzleBench: Can LLMs Solve Hard
+Combinatorial Reasoning Puzzles? arXiv:2402.02611, 2024.
+
+\bibitem{proofwriter} O.~Tafjord, B.~D.~Mishra, and P.~Clark. ProofWriter:
+Generating Implications, Proofs, and Abductive Statements over Natural Language.
+arXiv:2012.13048, 2020.
+
+\bibitem{prontoqa} A.~Saparov and H.~He. Language Models Are Greedy Reasoners: A
+Systematic Formal Analysis of Chain-of-Thought (PrOntoQA). arXiv:2210.01240, 2022.
+
+\bibitem{puzzleclone} Authors of PuzzleClone. PuzzleClone: A Framework for Scaling
+Formal Puzzle Benchmarks. arXiv:2508.15180, 2025.
+
+\bibitem{combibench} Authors of CombiBench. CombiBench: Benchmarking LLM
+Capability for Combinatorial Mathematics. arXiv:2505.03171, 2025.
+
+\bibitem{cspenergy} Authors of the CSP-energy-landscape study. Constraint
+Satisfaction as Energy-Landscape Search. arXiv:2501.00227, 2025.
+
+\bibitem{ssvcsp} Authors of the self-supervised CSP solver. Self-Supervised
+Learning for Constraint Satisfaction Problems. arXiv:2502.15794, 2025.
+
+\bibitem{ebt} A.~Gladstone et al. Energy-Based Transformers Are Scalable Learners
+and Thinkers. arXiv:2507.02092, 2025.
+
+\bibitem{kona} Logical Intelligence. Kona: An Energy-Based Reasoning Model, and
+the Aleph System. Company blog, 2025. Non-peer-reviewed.
+
+\bibitem{enso} M.~V.~Pandey. Enso: Energy-Based Reasoning.
+\url{https://github.com/MVPandey/Enso}, 2024.
+
+\end{thebibliography}
+
+\end{document}
