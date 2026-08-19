@@ -21,7 +21,10 @@ from latticebench.schema import Assignment, Domain, Puzzle
 
 Client = Callable[[str], str]
 
-_JSON_RE = re.compile(r"\{.*\}", re.DOTALL)
+# the answer object is flat (values are lists), so match brace-balanced-free
+# objects and prefer the last one -- models tend to reason first and answer last.
+_FLAT_OBJ = re.compile(r"\{[^{}]*\}", re.DOTALL)
+_GREEDY = re.compile(r"\{.*\}", re.DOTALL)
 
 
 def _extract_json_object(text: str) -> Any:
@@ -29,7 +32,14 @@ def _extract_json_object(text: str) -> Any:
         return json.loads(text)
     except (ValueError, TypeError):
         pass
-    match = _JSON_RE.search(text)
+    for cand in reversed(_FLAT_OBJ.findall(text)):
+        try:
+            obj = json.loads(cand)
+        except ValueError:
+            continue
+        if isinstance(obj, dict):
+            return obj
+    match = _GREEDY.search(text)
     if match:
         try:
             return json.loads(match.group(0))

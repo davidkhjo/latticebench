@@ -21,16 +21,31 @@ def _build_model(spec: str) -> Model:
     kind = parts[0]
     if kind == "solver":
         return SolverModel(solver=parts[1] if len(parts) > 1 else "ortools")
+    if kind == "gnn":
+        from latticebench.harness.gnn import GNNSolverModel
+
+        return GNNSolverModel(parts[1] if len(parts) > 1 else "checkpoints/solver.pt")
     if kind == "ebm":
+        if len(parts) > 1 and parts[1] == "gnn":
+            from latticebench.harness.gnn import GNNEnergyModel
+
+            ckpt = parts[2] if len(parts) > 2 else "checkpoints/gnn.pt"
+            return GNNEnergyModel(ckpt)
         return EBMModel()
     if kind == "llm":
         if len(parts) < 3:
             raise SystemExit("llm spec must be llm:<provider>:<model>")
         provider, model = parts[1], ":".join(parts[2:])
+        if provider == "local":
+            from latticebench.harness.llm import LLMModel as _LM
+            from latticebench.harness.local_llm import MLXClient, short_name, solve_template
+
+            client: Any = MLXClient(model)
+            return _LM(client, name=f"llm:{short_name(model)}", template=solve_template)
         if provider == "anthropic":
             from latticebench.harness.llm import AnthropicChat
 
-            client: Any = AnthropicChat(model)
+            client = AnthropicChat(model)
         elif provider == "openai":
             from latticebench.harness.llm import OpenAIChat
 
