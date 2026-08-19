@@ -1,4 +1,4 @@
-"""The energy formulation.
+"""Energy formulation.
 
 A puzzle compiles to an energy over binary variables ``x`` indexed by
 ``(attribute, value, house)``. Two families of terms make it up:
@@ -237,5 +237,4 @@ class EnergyGrid:
 
 
 def energy_grid(puzzle: Any, *, lam_struct: float | None = None) -> EnergyGrid:
-    """Build an :class:`EnergyGrid` from a puzzle."""
     return EnergyGrid(puzzle.domain, puzzle.clues, lam_struct=lam_struct)

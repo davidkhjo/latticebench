@@ -1,4 +1,4 @@
-"""The unified evaluation harness.
+"""The evaluation harness.
 
 Every model class — solver, language model, energy-based model — implements the
 same :class:`Model` protocol, so one :func:`evaluate` call and one leaderboard

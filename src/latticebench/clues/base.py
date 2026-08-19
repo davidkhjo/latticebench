@@ -1,4 +1,4 @@
-"""The clue abstraction.
+"""Clue abstraction.
 
 A clue is self-describing along three axes that must always agree:
 

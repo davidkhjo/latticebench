@@ -1,4 +1,4 @@
-"""The energy-based-model adapter.
+"""Energy-based-model adapter.
 
 The default baseline minimizes the puzzle's own energy directly by simulated
 annealing over permutation assignments — an honest, dependency-light energy

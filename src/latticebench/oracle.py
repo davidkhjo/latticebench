@@ -1,4 +1,4 @@
-"""The constraint model behind a puzzle.
+"""Constraint model and uniqueness oracle.
 
 CPMpy is the single glue layer: it compiles a puzzle to an ``AllDifferent`` model
 plus the clue constraints and dispatches to OR-Tools CP-SAT (the default and the
