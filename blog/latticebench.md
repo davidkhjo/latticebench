@@ -90,28 +90,39 @@ difficulty oracle; LatticeBench runs the solver as a reported baseline and adds 
 energy view so energy-based models are a first-class evaluated class rather than an
 afterthought.
 
-## The chart I expect to matter
+## The chart that matters
 
 The headline result is a single plot: accuracy against grid size, one line per
-model class. I expect the language-model line to fall steadily as the grid grows
-from small puzzles to large ones, tracking the collapse ZebraLogic documented,
-while the constraint solvers stay flat near 100 percent across the whole range. On
-the same axes and the same instances, that gap is the story: the puzzles are not
-intrinsically hard, since a solver dispatches them, so the falling line is
-measuring something specific about how language models scale on constraint
-satisfaction rather than something about the puzzles themselves.
+model class (`paper/figures/accuracy_vs_size.png`). The constraint solvers stay
+flat at 100 percent across the whole range, from three houses to six. On the same
+axes and the same instances, everything else falls away from that ceiling. The
+puzzles are not intrinsically hard, since a solver dispatches every one of them, so
+the gaps below the ceiling measure how each method scales rather than anything
+about the puzzles.
+
+In a first trial run those gaps are large. A recurrent graph network I trained on
+grids of at most four houses solves every held-out three-by-three puzzle, slips to
+about half on four-by-four, and hits zero on the five- and six-house grids it never
+saw during training, though its cell-level accuracy stays above chance the whole
+way. An energy-based baseline that is handed the exact energy and minimizes it by
+annealing is the strongest non-solver, near 100 percent until the largest grid. A
+small open language model run locally (Qwen2.5-3B) solves almost none of them, a
+bit above one percent, and takes twenty seconds a puzzle doing it.
 
 ## The honest part
 
 I will say the uncomfortable thing directly, because pretending otherwise would
-make the benchmark worse. Energy-based models may well underperform language models
-on LatticeBench. That is not a defect in the benchmark; it is a measurement, and
-right now it is one of the few clean measurements of where energy-based reasoning
-actually stands against language models and solvers on identical problems. If the
-EBM line sits below the LLM line, that is a result worth publishing, and the graded
-energy metric will at least show whether the energy models are landing near the
-solution or nowhere close. I would rather report a disappointing number honestly
-than tune the benchmark until my preferred method wins.
+make the benchmark worse. My own learned model is not close to the solvers, and it
+does not generalize to grid sizes it was not trained on. That is a measurement, not
+a defect in the benchmark, and it is one of the few clean measurements of where a
+graph-based reasoning model actually stands against solvers and language models on
+identical problems. I also tried a purely energy-based version of the graph model,
+minimizing a learned energy at test time; it learned the local structure but could
+not assemble whole solutions in the budget I gave it, and I am reporting that as a
+negative result rather than quietly dropping it. The graded energy metric earns its
+place here: for the graph network, low final energy lines up with correct grids and
+rises smoothly as more cells are misplaced. I would rather report a disappointing
+number honestly than tune the benchmark until my preferred method wins.
 
 ## Run it
 

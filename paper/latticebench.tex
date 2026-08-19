@@ -4,6 +4,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{booktabs}
+\usepackage{graphicx}
 \usepackage[numbers]{natbib}
 \usepackage{hyperref}
 \hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue}
@@ -225,16 +226,30 @@ solver and energy classes where it is meaningful.
 
 \section{Experiments}
 
-This section describes the tables and plots the full run will produce; the numbers
-in Table~\ref{tab:results} are placeholders. The headline plot is accuracy against
-grid size for each model class, which we expect to show language-model accuracy
-falling as grids grow while solvers stay near 100 percent, reproducing the
-complexity curve ZebraLogic reported and setting it against a solver ceiling on the
-same instances. A second analysis correlates the solver's conflict count with
-language-model accuracy per instance, testing whether search difficulty for a
-solver predicts difficulty for a language model. A third examines energy-versus-
-correctness calibration, asking whether an energy-based model's final energy tracks
-whether its answer is right.
+We evaluate five systems on identical instances across grid sizes from $3\times2$
+to $6\times4$, with fifteen instances per size: two constraint solvers (OR-Tools
+CP-SAT and Z3), an energy-based baseline that minimizes the hand-written energy by
+simulated annealing, a recurrent relational graph network trained to solve the
+puzzles directly (our learned model, denoted \texttt{gnn}), and a small open
+language model (Qwen2.5-3B-Instruct, run locally). Table~\ref{tab:results}
+aggregates over the sweep and Figure~\ref{fig:accuracy} plots accuracy against grid
+size. These are results from an initial run at trial scale, not a final
+leaderboard; the compute budget is small and the language-model class is
+represented by a single 3B model.
+
+The graph network is trained only on grids of at most four houses, so the
+$5\times4$ and $6\times4$ columns measure generalization to unseen sizes. It
+reaches the true grid on every held-out $3\times3$ instance, degrades smoothly as
+the grid grows, and drops to zero exact-match on the unseen sizes while keeping
+cell-accuracy above chance: it transfers partial structure but not whole solutions.
+The energy-based annealer, handed the exact energy, marks the practical ceiling for
+search and stays near the solvers until $6\times4$, where it falls to 0.47. The
+local language model solves almost nothing (1.3 percent exact-match) and runs three
+orders of magnitude slower than the graph network; we expect larger models to do
+better, and reading that curve is future work. We also trained a purely
+energy-based graph network whose energy is minimized at test time. It fit the
+single-item conditionals but did not recover full solutions from scratch within the
+budget, so we report it as a negative result rather than promote it into the table.
 
 \begin{table}[t]
 \centering
@@ -242,26 +257,56 @@ whether its answer is right.
 \toprule
 Model & Class & Exact-match & Cell-acc & Mean energy & Median time (s) \\
 \midrule
-CP-SAT (OR-Tools) & Solver & TODO & TODO & TODO & TODO \\
-Z3               & Solver & TODO & TODO & TODO & TODO \\
-LLM baseline     & LLM    & TODO & TODO & TODO & TODO \\
-EBM baseline     & EBM    & TODO & TODO & TODO & TODO \\
+CP-SAT (OR-Tools)        & Solver & 1.000 & 1.000 & 0.00   & 0.004 \\
+Z3                       & Solver & 1.000 & 1.000 & 0.00   & 0.008 \\
+Energy annealing         & EBM    & 0.900 & 0.933 & 0.10   & 0.056 \\
+Graph network (ours)     & GNN    & 0.544 & 0.703 & 480.2  & 0.008 \\
+Qwen2.5-3B-Instruct      & LLM    & 0.013 & 0.174 & 154.4  & 21.77 \\
 \bottomrule
 \end{tabular}
-\caption{Placeholder results. All numbers are TODO pending the full evaluation
-run; the row structure fixes the reported model classes and metrics.}
+\caption{Results aggregated over grid sizes $3\times2$ to $6\times4$, fifteen
+instances each. Constraint solvers clear every instance; the energy annealer is
+close behind; the trained graph network solves small grids and fails on the unseen
+larger ones; the small language model is near zero and far slower. Mean energy is
+computed over parseable predictions only.}
 \label{tab:results}
 \end{table}
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.72\linewidth]{figures/accuracy_vs_size.png}
+\caption{Exact-match accuracy against grid size, one line per model with Wilson
+intervals. Constraint solvers stay at 100 percent; the energy annealer tracks them
+until the largest grid; the trained graph network solves small grids and collapses
+on the unseen $5\times4$ and $6\times4$ sizes; the small language model stays near
+zero throughout.}
+\label{fig:accuracy}
+\end{figure}
+
 \section{Analysis}
 
-The analysis will interpret the three studies above rather than restate them. We
-are most interested in whether the difficulty orderings agree across classes: if
-solver conflict count, language-model error, and energy-model residual energy rank
-instances similarly, that argues logic-grid difficulty is a property of the
-instance rather than of a particular solving method, which would make the grid-size
-dial a clean difficulty control. Where the orderings disagree we expect the
-disagreements to be informative about each method's failure mode.
+Across classes the per-instance difficulty signals barely agreed in this run:
+Spearman correlations among solver conflict count, language-model error, and
+energy-model residual energy were near zero. We read this cautiously rather than as
+evidence that difficulty is method-specific. At trial scale most instances of a
+given size carry a similar, small conflict count, so the conflict axis has little
+spread to correlate against, and the language model fails almost everywhere, which
+flattens its error signal. Answering the cross-class difficulty question needs a
+larger sweep that varies clue count and deductive depth within a fixed grid size,
+and stronger language models with a non-degenerate error range. The
+energy-versus-correctness view is cleaner (Figure~\ref{fig:calibration}): for the
+trained graph network, low final energy coincides with correct grids and the
+residual energy grows with the number of misplaced cells, so the graded energy
+metric carries information that exact-match discards.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.72\linewidth]{figures/energy_calibration.png}
+\caption{Final energy against cell accuracy for the trained graph network, coloured
+by exact-match. Solved grids sit at zero energy; residual energy rises as more cells
+are misplaced.}
+\label{fig:calibration}
+\end{figure}
 
 \section{Limitations}
 \label{sec:limits}

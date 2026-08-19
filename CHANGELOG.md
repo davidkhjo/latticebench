@@ -6,6 +6,21 @@ follows [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- A recurrent relational graph network (`gnn`) that learns to solve puzzles from
+  the constraint graph, with training scripts and a saved checkpoint.
+- An energy-based graph network and contrastive-divergence training built on
+  ebmkit (reported as a negative result: it fits local conditionals but does not
+  solve from scratch at trial scale).
+- A local open language-model baseline via mlx-lm (`llm:local:<model>`), behind
+  an optional `[llm-local]` extra so Linux CI is unaffected.
+- An analysis module (score/record joins, Wilson intervals, rank correlations)
+  and three figures: accuracy vs grid size, conflict vs accuracy, and
+  energy-vs-correctness calibration.
+- An experiment runner (`experiments/run.py`) and a `make reproduce` target that
+  regenerate the manifest-backed splits, results table, and figures.
+
 ## [0.1.0]
 
 Initial release.

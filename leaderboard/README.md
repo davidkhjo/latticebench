@@ -21,6 +21,13 @@ wall-clock latency per instance.
 
 ## Standings
 
+Reference numbers from the initial trial run (`experiments/run.py`), aggregated
+over grid sizes 3x2 to 6x4, fifteen instances each. Open for submissions.
+
 | Model | Class | Exact-match | Cell-acc | Mean energy | Median time (s) |
 |-------|-------|-------------|----------|-------------|-----------------|
-| _no submissions yet_ | | | | | |
+| CP-SAT (OR-Tools) | solver | 1.000 | 1.000 | 0.00 | 0.004 |
+| Z3 | solver | 1.000 | 1.000 | 0.00 | 0.008 |
+| Energy annealing | ebm | 0.900 | 0.933 | 0.10 | 0.056 |
+| Graph network (ours) | gnn | 0.544 | 0.703 | 480.2 | 0.008 |
+| Qwen2.5-3B-Instruct | llm | 0.013 | 0.174 | 154.4 | 21.77 |

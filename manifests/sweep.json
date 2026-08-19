@@ -1,0 +1,72 @@
+{
+  "master_seed": 20260819,
+  "count": 15,
+  "manifests": [
+    {
+      "master_seed": 20260819,
+      "generator_version": "0.1.0",
+      "git_commit": "",
+      "n": 3,
+      "m": 2,
+      "count": 15,
+      "created": "2026-12-31",
+      "split": "sweep-n3m2",
+      "hash_of_hashes": "ae87c3ce815c0ac19414815dd63fbbd942d74c733e1d67ebc1a78582ee246834"
+    },
+    {
+      "master_seed": 20260820,
+      "generator_version": "0.1.0",
+      "git_commit": "",
+      "n": 3,
+      "m": 3,
+      "count": 15,
+      "created": "2026-12-31",
+      "split": "sweep-n3m3",
+      "hash_of_hashes": "8b1c02e922922330b41578bc91e83386177fb7de7c4248ced53f688790b5b4f4"
+    },
+    {
+      "master_seed": 20260821,
+      "generator_version": "0.1.0",
+      "git_commit": "",
+      "n": 4,
+      "m": 3,
+      "count": 15,
+      "created": "2026-12-31",
+      "split": "sweep-n4m3",
+      "hash_of_hashes": "16078202b9b9f76eebfe51497bf11d80d31f695f9faa6b720db45c0ed4e9cbf2"
+    },
+    {
+      "master_seed": 20260822,
+      "generator_version": "0.1.0",
+      "git_commit": "",
+      "n": 4,
+      "m": 4,
+      "count": 15,
+      "created": "2026-12-31",
+      "split": "sweep-n4m4",
+      "hash_of_hashes": "c1ed6fb865159501591ccb2f2785851e90e1ad3125a5da22b5c593d9e7d596da"
+    },
+    {
+      "master_seed": 20260823,
+      "generator_version": "0.1.0",
+      "git_commit": "",
+      "n": 5,
+      "m": 4,
+      "count": 15,
+      "created": "2026-12-31",
+      "split": "sweep-n5m4",
+      "hash_of_hashes": "416076125cc8c9f7dc0764d59772274afd7cfb050c1210115be1658244da3496"
+    },
+    {
+      "master_seed": 20260824,
+      "generator_version": "0.1.0",
+      "git_commit": "",
+      "n": 6,
+      "m": 4,
+      "count": 15,
+      "created": "2026-12-31",
+      "split": "sweep-n6m4",
+      "hash_of_hashes": "5195a7e19ddf05f3eaf3cbe53221a0b593c75e5f5cf3857bd9324a1418062538"
+    }
+  ]
+}
