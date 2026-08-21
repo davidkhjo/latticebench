@@ -56,6 +56,9 @@ def main() -> None:
     ap.add_argument(
         "--llm-max-n", type=int, default=5, help="skip the LLM on larger grids (it is slow)"
     )
+    ap.add_argument(
+        "--llm-count", type=int, default=None, help="LLM instances per size (default --count)"
+    )
     ap.add_argument("--llm-model", default="mlx-community/Qwen2.5-3B-Instruct-4bit")
     ap.add_argument("--solver-ckpt", default="checkpoints/solver.pt")
     ap.add_argument("--figdir", default="paper/figures")
@@ -106,12 +109,13 @@ def main() -> None:
         for (n, m), recs in splits.items():
             if is_llm and n > args.llm_max_n:
                 continue
-            result = evaluate(model, recs)
+            use = recs[: args.llm_count] if (is_llm and args.llm_count) else recs
+            result = evaluate(model, use)
             Path(f"results/{model.name.replace(':', '_')}-n{n}m{m}.json").write_text(
                 json.dumps(result.to_dict(), indent=2)
             )
             by_size.append((n, result))
-            joined += analysis.join_scores(result, recs)
+            joined += analysis.join_scores(result, use)
             print(f"{model.name:22s} n={n} m={m}: exact={result.summary['exact_match']:.2f}")
         per_model_size[model.name] = by_size
         joined_by_model[model.name] = joined
@@ -125,6 +129,15 @@ def main() -> None:
     # figures
     size_data = {name: analysis.size_accuracy(bs) for name, bs in per_model_size.items()}
     viz.plot_accuracy_vs_size(size_data, str(figdir / "accuracy_vs_size.png"))
+
+    # per-size exact-match with Wilson 95% intervals
+    ci_rows = ["| model | n | exact-match | 95% CI |", "|---|--:|--:|--:|"]
+    for name, sd in size_data.items():
+        for r in sorted(sd, key=lambda row: row["n"]):
+            ci_rows.append(
+                f"| {name} | {r['n']} | {r['exact']:.2f} | [{r['lo']:.2f}, {r['hi']:.2f}] |"
+            )
+    (figdir / "accuracy_by_size.md").write_text("\n".join(ci_rows) + "\n")
 
     learners = [n for n in joined_by_model if n.startswith(("llm:", "gnn"))]
     if learners:

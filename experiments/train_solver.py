@@ -14,7 +14,7 @@ import torch
 from latticebench.models.solver import RecurrentSolver
 from latticebench.models.train import build_dataset, save_solver, train_solver
 
-TRAIN_SIZES = [(3, 2), (3, 3), (4, 3), (4, 4)]
+TRAIN_SIZES = [(3, 2), (3, 3), (4, 3), (4, 4), (5, 4), (6, 4)]
 
 
 def main() -> None:

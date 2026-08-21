@@ -59,6 +59,34 @@ def plot_accuracy_vs_size(data: dict[str, list[dict]], path: str | None = None) 
     return fig
 
 
+def plot_accuracy_vs_difficulty(data: dict[str, list[dict]], path: str | None = None) -> Any:
+    """Exact-match accuracy against instance difficulty (log search space).
+
+    ``data`` maps each model to a list of ``{"x", "exact", "lo", "hi"}`` rows.
+    Using a difficulty scalar on the x-axis keeps the ordering clean when the
+    sweep varies both the number of houses and the number of attributes.
+    """
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(6, 4))
+    for model, rows in data.items():
+        rows = sorted(rows, key=lambda r: r["x"])
+        xs = [r["x"] for r in rows]
+        ys = [r["exact"] for r in rows]
+        (line,) = ax.plot(xs, ys, marker="o", label=model)
+        ax.fill_between(
+            xs, [r["lo"] for r in rows], [r["hi"] for r in rows], alpha=0.15, color=line.get_color()
+        )
+    ax.set_xlabel("instance difficulty (log search space)")
+    ax.set_ylabel("exact-match accuracy")
+    ax.set_ylim(0, 1)
+    ax.legend()
+    fig.tight_layout()
+    if path:
+        fig.savefig(path, dpi=150)
+    return fig
+
+
 def plot_conflict_vs_accuracy(joined: list[dict], path: str | None = None, bins: int = 8) -> Any:
     """Accuracy against solver difficulty for a single model's joined rows.
 

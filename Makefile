@@ -14,6 +14,7 @@ check: lint typecheck test
 reproduce:
 	uv run python experiments/train_solver.py
 	uv run python experiments/run.py
+	uv run python experiments/figures.py
 
 # make bump-patch   # 0.1.0 -> 0.1.1  (also: bump-minor, bump-major)
 # Update CHANGELOG.md first; after bumping, `git push --follow-tags` and cut a
