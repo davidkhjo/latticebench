@@ -1,5 +1,5 @@
 {
   "conflict_vs_llm_error": 0.0,
   "conflict_vs_ebm_energy": 0.0,
-  "llm_error_vs_ebm_energy": 0.01351351351351351
+  "llm_error_vs_ebm_energy": 0.0
 }

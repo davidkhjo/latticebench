@@ -1,6 +1,6 @@
 {
   "master_seed": 20260819,
-  "count": 15,
+  "count": 24,
   "manifests": [
     {
       "master_seed": 20260819,
@@ -8,10 +8,10 @@
       "git_commit": "",
       "n": 3,
       "m": 2,
-      "count": 15,
+      "count": 24,
       "created": "2026-12-31",
       "split": "sweep-n3m2",
-      "hash_of_hashes": "ae87c3ce815c0ac19414815dd63fbbd942d74c733e1d67ebc1a78582ee246834"
+      "hash_of_hashes": "59c6266ab3376b4ef481370426454d345db07a058af49f8301f616ced422451b"
     },
     {
       "master_seed": 20260820,
@@ -19,10 +19,10 @@
       "git_commit": "",
       "n": 3,
       "m": 3,
-      "count": 15,
+      "count": 24,
       "created": "2026-12-31",
       "split": "sweep-n3m3",
-      "hash_of_hashes": "8b1c02e922922330b41578bc91e83386177fb7de7c4248ced53f688790b5b4f4"
+      "hash_of_hashes": "9dabb1db72936062d222a24c140066f05ea8c9de5b97b543f4f1c381c33f619e"
     },
     {
       "master_seed": 20260821,
@@ -30,10 +30,10 @@
       "git_commit": "",
       "n": 4,
       "m": 3,
-      "count": 15,
+      "count": 24,
       "created": "2026-12-31",
       "split": "sweep-n4m3",
-      "hash_of_hashes": "16078202b9b9f76eebfe51497bf11d80d31f695f9faa6b720db45c0ed4e9cbf2"
+      "hash_of_hashes": "415a2e2f18f8a2a78bf013f5e47680ee38304d68851bba9d48b80d05c12da2a4"
     },
     {
       "master_seed": 20260822,
@@ -41,10 +41,10 @@
       "git_commit": "",
       "n": 4,
       "m": 4,
-      "count": 15,
+      "count": 24,
       "created": "2026-12-31",
       "split": "sweep-n4m4",
-      "hash_of_hashes": "c1ed6fb865159501591ccb2f2785851e90e1ad3125a5da22b5c593d9e7d596da"
+      "hash_of_hashes": "dc16fd822e10cb95c22b91352270b0c9fe438ab50de12aab3c5b4cd7e3e5174b"
     },
     {
       "master_seed": 20260823,
@@ -52,10 +52,10 @@
       "git_commit": "",
       "n": 5,
       "m": 4,
-      "count": 15,
+      "count": 24,
       "created": "2026-12-31",
       "split": "sweep-n5m4",
-      "hash_of_hashes": "416076125cc8c9f7dc0764d59772274afd7cfb050c1210115be1658244da3496"
+      "hash_of_hashes": "d4d6259f54bb13cb4d45296262c043f0dd94f33098c86119af2b0c4e8bf9592e"
     },
     {
       "master_seed": 20260824,
@@ -63,10 +63,10 @@
       "git_commit": "",
       "n": 6,
       "m": 4,
-      "count": 15,
+      "count": 24,
       "created": "2026-12-31",
       "split": "sweep-n6m4",
-      "hash_of_hashes": "5195a7e19ddf05f3eaf3cbe53221a0b593c75e5f5cf3857bd9324a1418062538"
+      "hash_of_hashes": "520d710988ba9c0554ead6bedeefd7327699c3e72cc5a3737b8c0aa9cf9f7f81"
     }
   ]
 }

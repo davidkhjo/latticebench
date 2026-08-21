@@ -226,30 +226,37 @@ solver and energy classes where it is meaningful.
 
 \section{Experiments}
 
-We evaluate five systems on identical instances across grid sizes from $3\times2$
-to $6\times4$, with fifteen instances per size: two constraint solvers (OR-Tools
+We evaluate five systems on identical instances across six grid configurations
+from $3\times2$ to $6\times4$, with twenty-four instances per configuration (ten
+for the language model, which is far slower): two constraint solvers (OR-Tools
 CP-SAT and Z3), an energy-based baseline that minimizes the hand-written energy by
 simulated annealing, a recurrent relational graph network trained to solve the
 puzzles directly (our learned model, denoted \texttt{gnn}), and a small open
-language model (Qwen2.5-3B-Instruct, run locally). Table~\ref{tab:results}
-aggregates over the sweep and Figure~\ref{fig:accuracy} plots accuracy against grid
-size. These are results from an initial run at trial scale, not a final
-leaderboard; the compute budget is small and the language-model class is
-represented by a single 3B model.
+language model (Qwen2.5-3B-Instruct, run locally on a laptop). Table~\ref{tab:results}
+aggregates over the sweep and Figure~\ref{fig:accuracy} plots accuracy against
+instance difficulty. These are results from an initial run at trial scale, not a
+final leaderboard; the compute budget is a single CPU and the language-model class
+is represented by one small model.
 
-The graph network is trained only on grids of at most four houses, so the
-$5\times4$ and $6\times4$ columns measure generalization to unseen sizes. It
-reaches the true grid on every held-out $3\times3$ instance, degrades smoothly as
-the grid grows, and drops to zero exact-match on the unseen sizes while keeping
-cell-accuracy above chance: it transfers partial structure but not whole solutions.
-The energy-based annealer, handed the exact energy, marks the practical ceiling for
-search and stays near the solvers until $6\times4$, where it falls to 0.47. The
-local language model solves almost nothing (1.3 percent exact-match) and runs three
-orders of magnitude slower than the graph network; we expect larger models to do
-better, and reading that curve is future work. We also trained a purely
-energy-based graph network whose energy is minimized at test time. It fit the
-single-item conditionals but did not recover full solutions from scratch within the
-budget, so we report it as a negative result rather than promote it into the table.
+The graph network is trained on all six configurations, so the sweep measures
+capability rather than size generalization. It solves every $3\times2$ instance and
+almost every $3\times3$ (0.96), holds at 0.75 and 0.62 on the four-house grids, then
+collapses to 0.04 and 0.00 on $5\times4$ and $6\times4$: it learns to solve the
+smaller grids but message passing does not propagate enough constraint information
+to assemble a full six-house solution, even with those sizes in training. A separate
+model trained only on grids of at most four houses reached zero exact-match on the
+unseen five- and six-house grids, so size generalization is harder still than
+in-distribution capacity. The energy annealer, handed the exact energy, marks the
+practical ceiling for search and stays near the solvers until $6\times4$, where it
+falls to 0.42. The local language model solves almost nothing (2.0 percent
+exact-match) and runs three orders of magnitude slower than the graph network. A
+7B model (Qwen2.5-7B-Instruct) solved no instance exactly either, so the failure is
+not merely a 3B capacity limit; tracing the expected decline curve for capable
+language models would need a frontier or API model, which the local-only setup here
+does not provide. We also trained a purely energy-based graph network whose energy
+is minimized at test time; it fit the single-item conditionals but did not recover
+full solutions from scratch within the budget, and we report it as a negative result
+rather than promote it into the table.
 
 \begin{table}[t]
 \centering
@@ -257,29 +264,30 @@ budget, so we report it as a negative result rather than promote it into the tab
 \toprule
 Model & Class & Exact-match & Cell-acc & Mean energy & Median time (s) \\
 \midrule
-CP-SAT (OR-Tools)        & Solver & 1.000 & 1.000 & 0.00   & 0.004 \\
-Z3                       & Solver & 1.000 & 1.000 & 0.00   & 0.008 \\
-Energy annealing         & EBM    & 0.900 & 0.933 & 0.10   & 0.056 \\
-Graph network (ours)     & GNN    & 0.544 & 0.703 & 480.2  & 0.008 \\
-Qwen2.5-3B-Instruct      & LLM    & 0.013 & 0.174 & 154.4  & 21.77 \\
+CP-SAT (OR-Tools)        & Solver & 1.000 & 1.000 & 0.00   & 0.002 \\
+Z3                       & Solver & 1.000 & 1.000 & 0.00   & 0.003 \\
+Energy annealing         & EBM    & 0.889 & 0.922 & 0.11   & 0.019 \\
+Graph network (ours)     & GNN    & 0.562 & 0.774 & 175.8  & 0.004 \\
+Qwen2.5-3B-Instruct      & LLM    & 0.020 & 0.171 & 94.9   & 6.87 \\
 \bottomrule
 \end{tabular}
-\caption{Results aggregated over grid sizes $3\times2$ to $6\times4$, fifteen
-instances each. Constraint solvers clear every instance; the energy annealer is
-close behind; the trained graph network solves small grids and fails on the unseen
-larger ones; the small language model is near zero and far slower. Mean energy is
-computed over parseable predictions only.}
+\caption{Results aggregated over grid configurations $3\times2$ to $6\times4$.
+Constraint solvers clear every instance; the energy annealer is close behind; the
+trained graph network solves small grids and fails on the largest; the small
+language model is near zero and far slower. Mean energy is over parseable
+predictions only. Per-configuration values with 95 percent Wilson intervals are in
+the repository (\texttt{paper/figures/accuracy\_by\_config.md}).}
 \label{tab:results}
 \end{table}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.72\linewidth]{figures/accuracy_vs_size.png}
-\caption{Exact-match accuracy against grid size, one line per model with Wilson
-intervals. Constraint solvers stay at 100 percent; the energy annealer tracks them
-until the largest grid; the trained graph network solves small grids and collapses
-on the unseen $5\times4$ and $6\times4$ sizes; the small language model stays near
-zero throughout.}
+\includegraphics[width=0.72\linewidth]{figures/accuracy_vs_difficulty.png}
+\caption{Exact-match accuracy against instance difficulty (log search space), one
+line per model with 95 percent Wilson intervals. Constraint solvers stay at 100
+percent; the energy annealer tracks them until the hardest configuration; the
+trained graph network solves the easy grids and falls off as difficulty grows; the
+small language model stays near zero throughout.}
 \label{fig:accuracy}
 \end{figure}
 

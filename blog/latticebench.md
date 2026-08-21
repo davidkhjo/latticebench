@@ -92,28 +92,29 @@ afterthought.
 
 ## The chart that matters
 
-The headline result is a single plot: accuracy against grid size, one line per
-model class (`paper/figures/accuracy_vs_size.png`). The constraint solvers stay
-flat at 100 percent across the whole range, from three houses to six. On the same
-axes and the same instances, everything else falls away from that ceiling. The
-puzzles are not intrinsically hard, since a solver dispatches every one of them, so
-the gaps below the ceiling measure how each method scales rather than anything
-about the puzzles.
+The headline result is a single plot: accuracy against instance difficulty, one
+line per model class (`paper/figures/accuracy_vs_difficulty.png`). The constraint
+solvers stay flat at 100 percent across the whole range, from three houses to six.
+On the same axes and the same instances, everything else falls away from that
+ceiling. The puzzles are not intrinsically hard, since a solver dispatches every one
+of them, so the gaps below the ceiling measure how each method scales rather than
+anything about the puzzles.
 
 In a first trial run those gaps are large. A recurrent graph network I trained on
-grids of at most four houses solves every held-out three-by-three puzzle, slips to
-about half on four-by-four, and hits zero on the five- and six-house grids it never
-saw during training, though its cell-level accuracy stays above chance the whole
-way. An energy-based baseline that is handed the exact energy and minimizes it by
-annealing is the strongest non-solver, near 100 percent until the largest grid. A
-small open language model run locally (Qwen2.5-3B) solves almost none of them, a
-bit above one percent, and takes twenty seconds a puzzle doing it.
+the full range of sizes solves every three-by-two puzzle and almost every
+three-by-three, holds around two thirds on the four-house grids, and then falls to
+near zero on five and six houses even though it trained on them: it learns the small
+grids but cannot propagate enough constraint information to assemble a six-house
+solution. An energy-based baseline that is handed the exact energy and minimizes it
+by annealing is the strongest non-solver, near 100 percent until the largest grid,
+where it drops to 0.42. A small open language model run locally (Qwen2.5-3B) solves
+almost none of them, two percent, and a 7B model does no better on exact answers.
 
 ## The honest part
 
 I will say the uncomfortable thing directly, because pretending otherwise would
 make the benchmark worse. My own learned model is not close to the solvers, and it
-does not generalize to grid sizes it was not trained on. That is a measurement, not
+fails on the largest grids even after training on them. That is a measurement, not
 a defect in the benchmark, and it is one of the few clean measurements of where a
 graph-based reasoning model actually stands against solvers and language models on
 identical problems. I also tried a purely energy-based version of the graph model,
